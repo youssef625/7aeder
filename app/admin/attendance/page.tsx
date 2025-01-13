@@ -39,8 +39,8 @@ export default function AttendancePage() {
   const fetchData = async () => {
     try {
       const [usersRes, lecturesRes, attendanceRes] = await Promise.all([
-        fetch("/api/users"),
-        fetch("/api/lectures"),
+        fetch("/api/users", { next: { revalidate: 360 } }),
+        fetch("/api/lectures", { next: { revalidate: 60 } }),
         fetch("/api/attendance"),
       ]);
 
@@ -94,24 +94,31 @@ export default function AttendancePage() {
       });
 
       if (!res.ok) throw new Error("Failed to update attendance");
+      const data = await res.json();
+
+      if (data.success && data.Action === 0) {
+        // Set attendance to false
+        attended = false;
+        // Optionally, you can update the state or perform other actions here
+      }
 
       // Update local state with all attendance information
       setAttendance((prev) => {
         const existingRecord = prev.find(
-          (a) => a.user_id === userId && a.lecture_id === lectureId
+          (a) => a.user_id == userId && a.lecture_id == lectureId
         );
 
         if (existingRecord) {
           // Update existing record
           return prev.map((a) =>
-            a.user_id === userId && a.lecture_id === lectureId
+            a.user_id == userId && a.lecture_id == lectureId
               ? { ...a, attended }
               : a
           );
         } else {
           // Create new record if it doesn't exist
-          const user = users.find((u) => u.id === userId);
-          const lecture = lectures.find((l) => l.id === lectureId);
+          const user = users.find((u) => u.id == userId);
+          const lecture = lectures.find((l) => l.id == lectureId);
           return [
             ...prev,
             {

@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     }
     const result = await query({
       query: queryStr,
-      values: [userId, lectureId, attended, attended],
+      values: [userId, lectureId, 1],
     });
 
     return NextResponse.json({ success: true, Action: achattended });
