@@ -1,89 +1,93 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, PencilIcon, X } from "lucide-react";
+import { Plus, Trash2, PencilIcon } from "lucide-react";
 
-interface User {
+interface Lecture {
   id: string;
   name: string;
-  email: string;
-  role: string;
+  day: string;
   created_at: string;
 }
 
-export default function UserManagement() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [newUser, setNewUser] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "user",
-  });
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+export default function LectureManagement() {
+  const [lectures, setLectures] = useState<Lecture[]>([]);
+  const [newLecture, setNewLecture] = useState({ name: "", day: "" });
+  const [editingLecture, setEditingLecture] = useState<Lecture | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
   useEffect(() => {
-    fetchUsers();
+    fetchLectures();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchLectures = async () => {
     try {
-      const res = await fetch("/api/users");
+      const res = await fetch("/api/lectures");
       const data = await res.json();
-      setUsers(data);
+      setLectures(data);
     } catch (error) {
-      console.error("Failed to fetch users:", error);
+      console.error("Failed to fetch lectures:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateUser = async (e: React.FormEvent) => {
+  const handleCreateLecture = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/users", {
+      const res = await fetch("/api/lectures", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser),
+        body: JSON.stringify(newLecture),
       });
-      if (!res.ok) throw new Error("Failed to create user");
-      setNewUser({ name: "", email: "", password: "", role: "user" });
-      fetchUsers();
+      if (!res.ok) throw new Error("Failed to create lecture");
+      setNewLecture({ name: "", day: "" });
+      fetchLectures();
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.error("Error creating lecture:", error);
     }
   };
 
-  const handleUpdateUser = async (e: React.FormEvent) => {
+  const handleUpdateLecture = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingUser) return;
+    if (!editingLecture) return;
 
     try {
-      const res = await fetch("/api/users", {
+      const res = await fetch("/api/lectures", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingUser),
+        body: JSON.stringify(editingLecture),
       });
-      if (!res.ok) throw new Error("Failed to update user");
-      setEditingUser(null);
-      fetchUsers();
+      if (!res.ok) throw new Error("Failed to update lecture");
+      setEditingLecture(null);
+      fetchLectures();
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.error("Error updating lecture:", error);
     }
   };
 
-  const handleDeleteUser = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
+  const handleDeleteLecture = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this lecture?")) return;
     try {
-      const res = await fetch("/api/users", {
+      const res = await fetch("/api/lectures", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-      if (!res.ok) throw new Error("Failed to delete user");
-      fetchUsers();
+      if (!res.ok) throw new Error("Failed to delete lecture");
+      fetchLectures();
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deleting lecture:", error);
     }
   };
 
@@ -92,61 +96,50 @@ export default function UserManagement() {
   return (
     <div className="p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">User Management</h1>
+        <h1 className="text-3xl font-bold mb-8">Lecture Management</h1>
 
-        {/* Create User Form */}
+        {/* Create Lecture Form */}
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-          <h2 className="text-xl font-semibold mb-4">Create New User</h2>
+          <h2 className="text-xl font-semibold mb-4">Create New Lecture</h2>
           <form
-            onSubmit={handleCreateUser}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+            onSubmit={handleCreateLecture}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4"
           >
             <input
               type="text"
-              placeholder="Name"
-              value={newUser.name}
-              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-              className="border rounded p-2"
-              required
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={newUser.email}
+              placeholder="Lecture Name"
+              value={newLecture.name}
               onChange={(e) =>
-                setNewUser({ ...newUser, email: e.target.value })
-              }
-              className="border rounded p-2"
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={newUser.password}
-              onChange={(e) =>
-                setNewUser({ ...newUser, password: e.target.value })
+                setNewLecture({ ...newLecture, name: e.target.value })
               }
               className="border rounded p-2"
               required
             />
             <select
-              value={newUser.role}
-              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+              value={newLecture.day}
+              onChange={(e) =>
+                setNewLecture({ ...newLecture, day: e.target.value })
+              }
               className="border rounded p-2"
+              required
             >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
+              <option value="">Select Day</option>
+              {daysOfWeek.map((day) => (
+                <option key={day} value={day}>
+                  {day}
+                </option>
+              ))}
             </select>
             <button
               type="submit"
               className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex items-center justify-center gap-2"
             >
-              <Plus className="h-4 w-4" /> Add User
+              <Plus className="h-4 w-4" /> Add Lecture
             </button>
           </form>
         </div>
 
-        {/* Users Table */}
+        {/* Lectures Table */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -158,10 +151,7 @@ export default function UserManagement() {
                   Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
+                  Day
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created At
@@ -172,18 +162,20 @@ export default function UserManagement() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user.id}>
-                  {editingUser?.id === user.id ? (
+              {lectures.map((lecture) => (
+                <tr key={lecture.id}>
+                  {editingLecture?.id === lecture.id ? (
                     <>
-                      <td className="px-6 py-4 whitespace-nowrap">{user.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap font-mono text-sm">
+                        {lecture.id}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input
                           type="text"
-                          value={editingUser.name}
+                          value={editingLecture.name}
                           onChange={(e) =>
-                            setEditingUser({
-                              ...editingUser,
+                            setEditingLecture({
+                              ...editingLecture,
                               name: e.target.value,
                             })
                           }
@@ -191,45 +183,35 @@ export default function UserManagement() {
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <input
-                          type="email"
-                          value={editingUser.email}
-                          onChange={(e) =>
-                            setEditingUser({
-                              ...editingUser,
-                              email: e.target.value,
-                            })
-                          }
-                          className="border rounded p-1 w-full"
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
                         <select
-                          value={editingUser.role}
+                          value={editingLecture.day}
                           onChange={(e) =>
-                            setEditingUser({
-                              ...editingUser,
-                              role: e.target.value,
+                            setEditingLecture({
+                              ...editingLecture,
+                              day: e.target.value,
                             })
                           }
                           className="border rounded p-1"
                         >
-                          <option value="user">User</option>
-                          <option value="admin">Admin</option>
+                          {daysOfWeek.map((day) => (
+                            <option key={day} value={day}>
+                              {day}
+                            </option>
+                          ))}
                         </select>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {new Date(user.created_at).toLocaleDateString()}
+                        {new Date(lecture.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap space-x-2">
                         <button
-                          onClick={handleUpdateUser}
+                          onClick={handleUpdateLecture}
                           className="text-green-600 hover:text-green-900"
                         >
                           Save
                         </button>
                         <button
-                          onClick={() => setEditingUser(null)}
+                          onClick={() => setEditingLecture(null)}
                           className="text-gray-600 hover:text-gray-900"
                         >
                           Cancel
@@ -239,37 +221,28 @@ export default function UserManagement() {
                   ) : (
                     <>
                       <td className="px-6 py-4 whitespace-nowrap font-mono text-sm">
-                        {user.id}
+                        {lecture.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {user.name}
+                        {lecture.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {user.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            user.role === "admin"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
-                        >
-                          {user.role}
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {lecture.day}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {new Date(user.created_at).toLocaleDateString()}
+                        {new Date(lecture.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap space-x-2">
                         <button
-                          onClick={() => setEditingUser(user)}
+                          onClick={() => setEditingLecture(lecture)}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           <PencilIcon className="h-5 w-5" />
                         </button>
                         <button
-                          onClick={() => handleDeleteUser(user.id)}
+                          onClick={() => handleDeleteLecture(lecture.id)}
                           className="text-red-600 hover:text-red-900"
                         >
                           <Trash2 className="h-5 w-5" />
