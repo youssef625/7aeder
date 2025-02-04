@@ -17,9 +17,10 @@ export async function middleware(request: NextRequest) {
       const data = await response.json();
       
       if (data.authenticated) {
-        // Redirect authenticated users away from login page
+        // Redirect authenticated users away from login page based on role
+        const isAdminRole = ['admin', 'teacher', 'assistant'].includes(data.user.role);
         return NextResponse.redirect(
-          new URL(data.user.role === 'admin' ? '/admin/users' : '/dashboard', request.url)
+          new URL(isAdminRole ? '/admin/users' : '/dashboard', request.url)
         );
       }
     }
@@ -51,8 +52,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Check admin access
-  if (isAdminRoute && data.user.role !== 'admin') {
+  // Check admin access for admin routes
+  if (isAdminRoute && !['admin', 'teacher', 'assistant'].includes(data.user.role)) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 

@@ -8,7 +8,8 @@ export async function checkAdmin(id: string) {
       values: [id],
     });
     const user = (users as any[])[0];
-    return user?.role === 'admin';
+    // Consider admin, teacher, and assistant as admin roles
+    return ['admin', 'teacher', 'assistant'].includes(user?.role);
   } catch (error) {
     return false;
   }
